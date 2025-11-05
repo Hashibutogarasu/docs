@@ -1,0 +1,65 @@
+---
+title: "Sessions"
+description: "ユーザーのアクティブなセッション管理エンドポイント"
+---
+
+## エンドポイント一覧
+
+### GET /sessions
+
+現在のユーザーの全アクティブセッション一覧を取得します。
+
+**Required**: Bearer Token (JWT)
+
+**Response**
+```json
+{
+  "sessions": [
+    {
+      "id": "session_id_1",
+      "userId": "user_id",
+      "jti": "jwt_token_id",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T12:00:00.000Z",
+      "userAgent": "Mozilla/5.0...",
+      "ipAddress": "192.168.1.1"
+    },
+    {
+      "id": "session_id_2",
+      "userId": "user_id",
+      "jti": "jwt_token_id_2",
+      "createdAt": "2024-01-02T00:00:00.000Z",
+      "updatedAt": "2024-01-02T12:00:00.000Z",
+      "userAgent": "Chrome/120.0...",
+      "ipAddress": "192.168.1.2"
+    }
+  ]
+}
+```
+
+---
+
+### DELETE /sessions
+
+指定したセッションを削除します。現在のセッションを削除した場合、認証クッキーもクリアされます。
+
+**Required**: Bearer Token (JWT)
+
+**Request Body**
+```json
+{
+  "id": "session_id_to_delete"
+}
+```
+
+**Response**
+```json
+{
+  "message": "Session deleted successfully",
+  "deletedSessionId": "session_id_to_delete"
+}
+```
+
+現在のセッションを削除した場合、以下のクッキーがクリアされます:
+- `accessToken`
+- `refreshToken`

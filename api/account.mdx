@@ -1,0 +1,254 @@
+---
+title: "Account"
+description: "アカウント管理エンドポイント。パスワード管理、プロフィール更新、外部プロバイダー連携管理"
+---
+
+## エンドポイント一覧
+
+### POST /account/reset-password
+
+サインイン済みユーザーのパスワードを変更します。現在のパスワード認証が必要です。
+
+**Required**: Bearer Token (JWT)
+
+**Request Body**
+```json
+{
+  "currentPassword": "current_password",
+  "newPassword": "new_secure_password"
+}
+```
+
+**Response**
+```json
+{
+  "data": {
+    "message": "Password reset successfully"
+  }
+}
+```
+
+**エラーレスポンス**
+- `400`: 現在のパスワードが正しくない
+- `404`: ユーザーが見つからない
+
+---
+
+### POST /account/forgot-password
+
+パスワードリセット用の6桁の認証コードをメールで送信します。
+
+**Request Body**
+```json
+{
+  "email": "user@example.com"
+}
+```
+
+**Response**
+```json
+{
+  "data": {
+    "message": "Reset code sent to your email"
+  }
+}
+```
+
+---
+
+### POST /account/forgot-password/verify
+
+メールで送信された6桁のリセットコードを使用してパスワードを変更します。
+
+**Request Body**
+```json
+{
+  "email": "user@example.com",
+  "code": "123456",
+  "newPassword": "new_secure_password"
+}
+```
+
+**Response**
+```json
+{
+  "data": {
+    "message": "Password reset successfully"
+  }
+}
+```
+
+**エラーレスポンス**
+- `400`: 無効なリセットコード
+
+---
+
+### GET /account/profile
+
+現在のユーザーのプロフィール情報を取得します。
+
+**Required**: Bearer Token (JWT)
+
+**Response**
+```json
+{
+  "data": {
+    "id": "user_id",
+    "email": "user@example.com",
+    "username": "username",
+    "createdAt": "2024-01-01T00:00:00.000Z"
+  }
+}
+```
+
+---
+
+### PUT /account/profile
+
+現在のユーザーのプロフィール情報を更新します。
+
+**Required**: Bearer Token (JWT)
+
+**Request Body**
+```json
+{
+  "username": "new_username"
+}
+```
+
+**Response**
+```json
+{
+  "message": "Profile updated successfully",
+  "user": {
+    "id": "user_id",
+    "username": "new_username"
+  }
+}
+```
+
+**エラーレスポンス**
+- `400`: ユーザー名が既に使用されている
+- `404`: ユーザーが見つからない
+
+---
+
+### POST /account/set-password
+
+外部プロバイダーで登録したユーザーが初めてパスワードを設定します。
+既にパスワードが設定されている場合はエラーを返します。
+
+**Required**: Bearer Token (JWT)
+
+**Request Body**
+```json
+{
+  "password": "new_secure_password"
+}
+```
+
+**Response**
+```json
+{
+  "message": "Password set successfully"
+}
+```
+
+**エラーレスポンス**
+- `400`: パスワードが既に設定されている
+- `404`: ユーザーが見つからない
+
+---
+
+### POST /account/email/change
+
+メールアドレス変更リクエストを送信します。新しいメールアドレスに認証コードが送信されます。
+
+**Required**: Bearer Token (JWT)
+
+**Request Body**
+```json
+{
+  "newEmail": "newemail@example.com"
+}
+```
+
+**Response**
+```json
+{
+  "message": "Verification code sent to new email address"
+}
+```
+
+**エラーレスポンス**
+- `400`: メールアドレスが既に使用されている
+
+---
+
+### POST /account/email/change/verify
+
+メールアドレス変更の認証コードを検証し、メールアドレスを変更します。
+
+**Required**: Bearer Token (JWT)
+
+**Request Body**
+```json
+{
+  "verificationCode": "123456"
+}
+```
+
+**Response**
+```json
+{
+  "message": "Email changed successfully",
+  "newEmail": "newemail@example.com"
+}
+```
+
+**エラーレスポンス**
+- `400`: 無効な認証コード
+
+---
+
+### GET /account/security/status
+
+ユーザーのセキュリティ状態を取得します。パスワード設定可能性などを確認できます。
+
+**Required**: Bearer Token (JWT)
+
+**Response**
+```json
+{
+  "data": {
+    "canSetPassword": true,
+    "hasPassword": false,
+    "providers": ["google", "discord"]
+  }
+}
+```
+
+---
+
+### POST /account/providers/unlink
+
+外部認証プロバイダーとの連携を解除します。
+
+**Required**: Bearer Token (JWT)
+
+**Request Body**
+```json
+{
+  "provider": "google"
+}
+```
+
+**Response**
+```json
+{
+  "message": "Provider unlinked successfully"
+}
+```
+
+**エラーレスポンス**
+- `400`: プロバイダーが見つからない

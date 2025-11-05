@@ -1,0 +1,263 @@
+---
+title: "Auth"
+description: "認証・認可に関するエンドポイント群。ユーザー登録、ログイン、SNS認証、トークン管理を提供"
+---
+
+## エンドポイント一覧
+
+### GET /auth/providers
+
+利用可能な外部OAuth認証プロバイダーの一覧を取得します。
+
+**Response**
+```json
+{
+  "providers": ["google", "discord", "github"]
+}
+```
+
+---
+
+### POST /auth/register
+
+新規ユーザーを登録します。
+
+**Request Body**
+```json
+{
+  "email": "user@example.com",
+  "password": "SecurePassword123!",
+  "username": "username"
+}
+```
+
+**Response**
+```json
+{
+  "message": "User registered successfully",
+  "user": {
+    "id": "user_id",
+    "email": "user@example.com",
+    "username": "username"
+  }
+}
+```
+
+**エラーレスポンス**
+- `400`: バリデーションエラー
+- `500`: 内部サーバーエラー
+
+---
+
+### POST /auth/login
+
+メールアドレスとパスワードでログインします。MFAが有効な場合は、`mfaToken`クッキーが設定されます。
+
+**Request Body**
+```json
+{
+  "email": "user@example.com",
+  "password": "password123"
+}
+```
+
+**Response (MFA無効時)**
+```json
+{
+  "message": "Login successful",
+  "provider": "email",
+  "jti": "jwt_token_id",
+  "access_token": "eyJhbGc...",
+  "token_type": "Bearer",
+  "expires_in": 3600,
+  "refresh_token": "refresh_token_value",
+  "refresh_expires_in": 2592000,
+  "sessionId": "session_id"
+}
+```
+
+**Response (MFA有効時)**
+```json
+{
+  "mfaRequired": true,
+  "expiresAt": "2024-01-01T12:00:00.000Z"
+}
+```
+
+**Set-Cookie Header (MFA有効時)**
+```
+mfaToken=eyJhbGc...; HttpOnly; Secure; SameSite=Strict; Max-Age=600
+```
+
+**エラーレスポンス**
+- `401`: 認証情報が無効
+- `500`: トークン生成失敗 / 内部サーバーエラー
+
+---
+
+### POST /auth/refresh
+
+リフレッシュトークンを使用して新しいアクセストークンを取得します。
+
+**Request Body**
+```json
+{
+  "refresh_token": "refresh_token_value"
+}
+```
+
+**Response**
+```json
+{
+  "message": "Token refreshed successfully",
+  "jti": "new_jwt_token_id",
+  "access_token": "new_access_token",
+  "token_type": "Bearer",
+  "expires_in": 3600
+}
+```
+
+**エラーレスポンス**
+- `400`: 無効なトークン / リクエストが不正
+- `500`: トークン生成失敗
+
+---
+
+### GET /auth/profile
+
+JWT認証されたユーザーのプロフィール情報を取得します。
+
+**Required**: Bearer Token (JWT)
+
+**Response**
+```json
+{
+  "message": "Profile retrieved successfully",
+  "user": {
+    "id": "user_id",
+    "email": "user@example.com",
+    "username": "username",
+    "createdAt": "2024-01-01T00:00:00.000Z"
+  }
+}
+```
+
+**エラーレスポンス**
+- `401`: 認証が必要
+- `500`: 内部サーバーエラー
+
+---
+
+### POST /auth/state
+
+SNS認証用のステートコードと認証URLを生成します。
+
+**Request Body**
+```json
+{
+  "provider": "google",
+  "callbackUrl": "http://localhost:3000/auth/callback",
+  "codeChallenge": "optional_pkce_challenge"
+}
+```
+
+**Response**
+```json
+{
+  "message": "Authentication state created successfully",
+  "code": "state_code_xyz",
+  "redirectUrl": "https://accounts.google.com/o/oauth2/v2/auth?..."
+}
+```
+
+---
+
+### GET /auth/callback/:provider
+
+外部OAuth認証プロバイダーからのコールバックを処理します。
+
+**Path Parameters**
+- `provider`: 認証プロバイダー名 (例: google, discord)
+
+**Query Parameters**
+- `code`: 認証コード
+- `state`: ステートコード
+- `callbackUrl`: フロントエンドのコールバックURL
+
+**Response**: フロントエンドのコールバックURLへリダイレクト
+
+リダイレクトURLには以下のパラメータが付与されます:
+- `token`: ワンタイムトークン
+- `state`: ステートコード
+- `linkVerifyCode`: 外部プロバイダーリンク検証コード (初回リンク時)
+- `linkProvider`: リンクするプロバイダー名 (初回リンク時)
+
+---
+
+### POST /auth/verify
+
+SNS認証で取得したワンタイムトークンを検証し、JWTトークンを発行します。
+
+**Request Body**
+```json
+{
+  "stateCode": "state_code_xyz",
+  "oneTimeToken": "one_time_token_value"
+}
+```
+
+**Response (MFA無効時)**
+```json
+{
+  "message": "Token verified successfully",
+  "jti": "jwt_token_id",
+  "access_token": "eyJhbGc...",
+  "refresh_token": "refresh_token_value",
+  "provider": "google",
+  "sessionId": "session_id"
+}
+```
+
+**Response (MFA有効時)**
+```json
+{
+  "mfaRequired": true,
+  "expiresAt": "2024-01-01T12:00:00.000Z"
+}
+```
+
+**エラーレスポンス**
+- `400`: リクエストが不正
+- `500`: 内部サーバーエラー
+
+---
+
+### POST /auth/link/verify
+
+外部プロバイダーでのログイン時に、既存アカウントとのリンクを検証します。
+
+**Required**: Bearer Token (JWT)
+
+**Request Body**
+```json
+{
+  "provider": "google",
+  "verifyCode": "verification_code"
+}
+```
+
+**Response**
+```json
+{
+  "message": "Provider linked",
+  "success": true,
+  "result": {
+    "userId": "user_id",
+    "provider": "google"
+  }
+}
+```
+
+**エラーレスポンス**
+- `400`: リクエストが不正
+- `401`: 認証が必要

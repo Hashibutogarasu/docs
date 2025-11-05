@@ -1,0 +1,272 @@
+---
+title: "OAuth"
+description: "OAuth 2.0およびOpenID Connect準拠の認可サーバーエンドポイント。PKCE対応"
+---
+
+## エンドポイント一覧
+
+### GET /oauth/authorize
+
+OAuth 2.0認可エンドポイント。ユーザーの同意を得て認可コードを発行します。
+
+**Required**: Bearer Token (JWT)
+
+**Query Parameters**
+- `response_type`: `code` (固定)
+- `client_id`: OAuth クライアントID
+- `redirect_uri`: リダイレクトURI
+- `scope`: スコープ (スペース区切り)
+- `state`: ステート値 (CSRF対策)
+- `code_challenge`: PKCEのコードチャレンジ (オプション)
+- `code_challenge_method`: `S256` (オプション)
+
+**Response**: `redirect_uri`へリダイレクト
+
+リダイレクトURLには以下のパラメータが付与されます:
+- `code`: 認可コード
+- `state`: リクエスト時のステート値
+
+**エラーレスポンス**
+- `400`: 無効なリダイレクトURI
+- `302`: 無効なスコープ / サポートされていないレスポンスタイプ / アクセス拒否
+
+---
+
+### POST /oauth/token
+
+OAuth 2.0トークンエンドポイント。認可コードまたはリフレッシュトークンを使用してアクセストークンを取得します。
+
+**Authentication**: Basic認証 (client_id:client_secret)
+
+**Request Body (application/x-www-form-urlencoded)**
+
+#### 認可コードフロー
+```
+grant_type=authorization_code
+code=authorization_code_value
+redirect_uri=http://localhost:3000/callback
+code_verifier=pkce_code_verifier
+```
+
+#### リフレッシュトークンフロー
+```
+grant_type=refresh_token
+refresh_token=refresh_token_value
+```
+
+**Response**
+```json
+{
+  "access_token": "eyJhbGc...",
+  "token_type": "Bearer",
+  "expires_in": 3600,
+  "refresh_token": "refresh_token_value",
+  "scope": "openid profile email"
+}
+```
+
+**エラーレスポンス**
+- `400`: 無効なクライアント / 無効なグラント / 無効なグラントタイプ / 無効なスコープ / リクエストが不正
+- `401`: 認証が必要
+
+---
+
+### POST /oauth/token/revoke
+
+アクセストークンまたはリフレッシュトークンを無効化します。
+
+**Required**: Bearer Token (JWT)
+
+**Request Body (application/x-www-form-urlencoded)**
+```
+token=token_to_revoke
+token_type_hint=access_token
+```
+
+**Response**: 204 No Content
+
+**エラーレスポンス**
+- `400`: リクエストが不正 / 無効なクライアント / サポートされていないトークンタイプ
+
+---
+
+### GET /oauth/userinfo
+
+OpenID Connect UserInfo エンドポイント。認証されたユーザー情報を取得します。
+
+**Required**: Bearer Token (JWT)
+
+**Response**
+```json
+{
+  "sub": "user_id",
+  "name": "username",
+  "preferred_username": "username",
+  "email": "user@example.com",
+  "email_verified": true
+}
+```
+
+レスポンスに含まれる情報は、トークンに付与されたスコープによって変わります:
+- `openid` / `profile`: name, preferred_username
+- `email`: email, email_verified
+- `address`: address (未実装)
+- `phone`: phone_number, phone_number_verified (未実装)
+
+---
+
+### POST /oauth/availlable-scopes
+
+指定したOAuthクライアントで利用可能なスコープ一覧を取得します。
+
+**Required**: Bearer Token (JWT)
+
+**Request Body**
+```json
+{
+  "clientId": "oauth_client_id"
+}
+```
+
+**Response**
+```json
+{
+  "scopes": [
+    {
+      "name": "openid",
+      "description": "OpenID Connect authentication"
+    },
+    {
+      "name": "profile",
+      "description": "Access to basic profile information"
+    },
+    {
+      "name": "email",
+      "description": "Access to email address"
+    }
+  ]
+}
+```
+
+---
+
+### POST /oauth/client
+
+新しいOAuthクライアントを作成します。
+
+**Required**: Bearer Token (JWT)
+
+**Request Body**
+```json
+{
+  "name": "My Application",
+  "redirectUris": [
+    "http://localhost:3000/callback",
+    "https://myapp.com/callback"
+  ],
+  "scopes": ["openid", "profile", "email"]
+}
+```
+
+**Response**
+```json
+{
+  "clientId": "generated_client_id",
+  "clientSecret": "generated_client_secret",
+  "name": "My Application",
+  "redirectUris": ["http://localhost:3000/callback"],
+  "scopes": ["openid", "profile", "email"]
+}
+```
+
+---
+
+### POST /oauth/client/regenerate-secret
+
+既存のOAuthクライアントのシークレットを再生成します。
+
+**Required**: Bearer Token (JWT)
+
+**Request Body**
+```json
+{
+  "clientId": "oauth_client_id"
+}
+```
+
+**Response**
+```json
+{
+  "clientId": "oauth_client_id",
+  "clientSecret": "new_generated_client_secret"
+}
+```
+
+---
+
+### PUT /oauth/client
+
+既存のOAuthクライアント情報を更新します。
+
+**Required**: Bearer Token (JWT)
+
+**Request Body**
+```json
+{
+  "clientId": "oauth_client_id",
+  "name": "Updated Application Name",
+  "redirectUris": ["http://localhost:3000/callback"],
+  "scopes": ["openid", "profile"]
+}
+```
+
+**Response**
+```json
+{
+  "message": "Client updated successfully",
+  "client": {
+    "clientId": "oauth_client_id",
+    "name": "Updated Application Name"
+  }
+}
+```
+
+---
+
+### DELETE /oauth/client
+
+OAuthクライアントを削除します。
+
+**Required**: Bearer Token (JWT)
+
+**Request Body**
+```json
+{
+  "clientId": "oauth_client_id"
+}
+```
+
+**Response**: 204 No Content
+
+---
+
+### GET /oauth/jwks.json
+
+JWT署名検証用の公開鍵セット (JWKS) を取得します。
+
+**Response**
+```json
+{
+  "keys": [
+    {
+      "kty": "RSA",
+      "use": "sig",
+      "kid": "key_id",
+      "n": "modulus...",
+      "e": "AQAB"
+    }
+  ]
+}
+```
+
+**Cache-Control**: public, max-age=3600, must-revalidate

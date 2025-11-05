@@ -1,0 +1,192 @@
+---
+title: "MFA"
+description: "多要素認証(MFA)の設定と検証を管理するエンドポイント。TOTPおよびメールバックアップに対応"
+---
+
+## エンドポイント一覧
+
+### POST /auth/mfa/setup
+
+TOTP形式のMFA設定を初期化します。QRコード用のotpauthURLとシークレットキーを返します。
+
+**Required**: Bearer Token (JWT)
+
+**Response**
+```json
+{
+  "data": {
+    "message": "MFA setup initialized. Please verify with TOTP code.",
+    "otpauth": "otpauth://totp/Karasu%20LAB:user@example.com?secret=BASE32SECRET&issuer=Karasu%20LAB",
+    "secret": "BASE32SECRET"
+  }
+}
+```
+
+**エラーレスポンス**
+- `409`: MFA設定が既に存在する
+
+---
+
+### POST /auth/mfa/setup/complete
+
+TOTP認証コードを検証してMFA設定を完了します。バックアップコードが発行されます。
+
+**Required**: Bearer Token (JWT)
+
+**Request Body**
+```json
+{
+  "code": "123456"
+}
+```
+
+**Response**
+```json
+{
+  "data": {
+    "message": "MFA setup completed successfully",
+    "backup_codes": [
+      "AAAAA-BBBBB",
+      "CCCCC-DDDDD",
+      "EEEEE-FFFFF",
+      "GGGGG-HHHHH",
+      "IIIII-JJJJJ"
+    ]
+  }
+}
+```
+
+**エラーレスポンス**
+- `400`: 無効な認証コード / MFAが有効化されていない
+- `409`: MFA設定の競合
+
+---
+
+### GET /auth/mfa/backup-codes
+
+新しいバックアップコードを再生成します。古いバックアップコードは無効化されます。
+
+**Required**: Bearer Token (JWT)
+
+**Response**
+```json
+{
+  "data": {
+    "message": "Backup codes regenerated",
+    "backup_codes": [
+      "AAAAA-BBBBB",
+      "CCCCC-DDDDD",
+      "EEEEE-FFFFF",
+      "GGGGG-HHHHH",
+      "IIIII-JJJJJ"
+    ]
+  }
+}
+```
+
+---
+
+### DELETE /auth/mfa
+
+ユーザーのMFA設定を無効化します。
+
+**Required**: Bearer Token (JWT)
+
+**Response**
+```json
+{
+  "message": "MFA disabled"
+}
+```
+
+---
+
+### POST /auth/mfa/verify
+
+MFAトークンを検証してアクセストークンを発行します。
+TOTPコードまたはバックアップコードを使用できます。
+
+**Required**: Cookie (mfaToken)
+
+**Request Body**
+```json
+{
+  "code": "123456"
+}
+```
+
+**Response**
+```json
+{
+  "data": {
+    "message": "MFA verification successful",
+    "jti": "jwt_token_id",
+    "access_token": "eyJhbGc...",
+    "token_type": "Bearer",
+    "expires_in": 3600,
+    "refresh_token": "refresh_token_value",
+    "refresh_expires_in": 2592000,
+    "sessionId": "session_id"
+  }
+}
+```
+
+**エラーレスポンス**
+- `400`: 無効なトークン / MFAが有効化されていない
+- `500`: トークン生成失敗 / 内部サーバーエラー
+
+---
+
+### POST /auth/mfa/email-verify/request
+
+MFAバックアップとして、登録済みメールアドレスに認証コードを送信します。
+TOTP認証アプリが使用できない場合の代替手段として使用します。
+
+**Required**: Cookie (mfaToken)
+
+**Response**
+```json
+{
+  "data": {
+    "message": "Verification code sent to your registered email address"
+  }
+}
+```
+
+**エラーレスポンス**
+- `400`: MFAが有効化されていない
+
+---
+
+### POST /auth/mfa/email-verify/verify
+
+メールで送信された認証コードを検証してアクセストークンを発行します。
+
+**Required**: Cookie (mfaToken)
+
+**Request Body**
+```json
+{
+  "code": "123456"
+}
+```
+
+**Response**
+```json
+{
+  "data": {
+    "message": "MFA email verification successful",
+    "jti": "jwt_token_id",
+    "access_token": "eyJhbGc...",
+    "token_type": "Bearer",
+    "expires_in": 3600,
+    "refresh_token": "refresh_token_value",
+    "refresh_expires_in": 2592000,
+    "sessionId": "session_id"
+  }
+}
+```
+
+**エラーレスポンス**
+- `400`: 無効なリセットコード / MFAが有効化されていない
+- `500`: トークン生成失敗

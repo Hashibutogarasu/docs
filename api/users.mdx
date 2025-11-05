@@ -1,0 +1,129 @@
+---
+title: "Users"
+description: "ユーザー情報の取得とプロフィール管理を提供するエンドポイント"
+---
+
+## エンドポイント一覧
+
+### GET /users/me
+
+JWT認証されたユーザーの詳細情報と追加プロフィールを取得します。
+
+**Required**: Bearer Token (JWT)
+
+**Response**
+```json
+{
+  "data": {
+    "id": "user_id",
+    "email": "user@example.com",
+    "username": "username",
+    "extraProfiles": [
+      {
+        "provider": "google",
+        "profileData": {...}
+      }
+    ]
+  }
+}
+```
+
+---
+
+### GET /users/me/roles
+
+現在のユーザーに割り当てられているロール一覧を取得します。
+
+**Required**: Bearer Token (JWT)
+
+**Response**
+```json
+{
+  "data": {
+    "roles": [
+      {
+        "id": "role_id",
+        "name": "admin",
+        "bitmask": 255
+      }
+    ]
+  }
+}
+```
+
+---
+
+### GET /users/me/discord
+
+JWT認証されたユーザーのDiscordプロフィール情報を取得します。
+Discordプロフィールが存在しない場合はエラーを返します。
+
+**Required**: Bearer Token (JWT) + Discordプロフィール連携
+
+**Response**
+```json
+{
+  "data": {
+    "id": "discord_user_id",
+    "username": "discord_username",
+    "discriminator": "1234",
+    "avatar": "avatar_hash"
+  }
+}
+```
+
+**エラーレスポンス**
+- `404`: Discordプロフィールが見つからない
+
+---
+
+### GET /users/me/google
+
+JWT認証されたユーザーのGoogleプロフィール情報を取得します。
+Googleプロフィールが存在しない場合はエラーを返します。
+
+**Required**: Bearer Token (JWT) + Googleプロフィール連携
+
+**Response**
+```json
+{
+  "data": {
+    "id": "google_user_id",
+    "email": "google_email@example.com",
+    "name": "Google User Name",
+    "picture": "https://..."
+  }
+}
+```
+
+**エラーレスポンス**
+- `404`: Googleプロフィールが見つからない
+
+---
+
+### GET /users/list
+
+全ユーザーの一覧を取得します。`VIEW_ALL_USERS`権限が必要です。
+
+**Required**: Bearer Token (JWT) + `VIEW_ALL_USERS` 権限
+
+**Response**
+```json
+{
+  "data": [
+    {
+      "id": "user_id_1",
+      "email": "user1@example.com",
+      "username": "user1"
+    },
+    {
+      "id": "user_id_2",
+      "email": "user2@example.com",
+      "username": "user2"
+    }
+  ]
+}
+```
+
+**エラーレスポンス**
+- `403`: 権限がない

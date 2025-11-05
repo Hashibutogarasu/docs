@@ -1,6 +1,6 @@
 {
   "$schema": "https://mintlify.com/schema.json",
-  "name": "Starter Kit",
+  "name": "Karasu LAB API",
   "logo": {
     "dark": "/logo/dark.svg",
     "light": "/logo/light.svg"
@@ -17,70 +17,48 @@
   },
   "topbarLinks": [
     {
-      "name": "Support",
-      "url": "mailto:hi@mintlify.com"
+      "name": "API Server",
+      "url": "https://api.karasu256.com"
     }
   ],
   "topbarCtaButton": {
-    "name": "Dashboard",
-    "url": "https://dashboard.mintlify.com"
+    "name": "GitHub",
+    "url": "https://github.com/Hashibutogarasu/karasu-lab-nestjs-api"
   },
-  "tabs": [
-    {
-      "name": "API Reference",
-      "url": "api-reference",
-      "openapi": "https://api.karasu256.com/docs-json"
-    }
-  ],
+  "tabs": [],
   "anchors": [
     {
-      "name": "Documentation",
-      "icon": "book-open-cover",
-      "url": "https://mintlify.com/docs"
+      "name": "GitHub Repository",
+      "icon": "github",
+      "url": "https://github.com/Hashibutogarasu/karasu-lab-nestjs-api"
     },
     {
-      "name": "Community",
-      "icon": "slack",
-      "url": "https://mintlify.com/community"
-    },
-    {
-      "name": "Blog",
-      "icon": "newspaper",
-      "url": "https://mintlify.com/blog"
+      "name": "Twitter/X",
+      "icon": "x-twitter",
+      "url": "https://x.com/Columba_Karasu"
     }
   ],
   "navigation": [
     {
       "group": "Get Started",
       "pages": [
-        "introduction",
-        "quickstart",
-        "development"
+        "introduction"
       ]
     },
     {
-      "group": "Essentials",
+      "group": "API Reference",
       "pages": [
-        "essentials/markdown",
-        "essentials/code",
-        "essentials/images",
-        "essentials/settings",
-        "essentials/navigation",
-        "essentials/reusable-snippets"
-      ]
-    },
-    {
-      "group": "API Documentation",
-      "pages": [
-        "api-reference/introduction"
-      ]
-    },
-    {
-      "group": "Endpoint Examples",
-      "pages": [
-        "api-reference/endpoint/get",
-        "api-reference/endpoint/create",
-        "api-reference/endpoint/delete"
+        "api/app",
+        "api/auth",
+        "api/mfa",
+        "api/users",
+        "api/account",
+        "api/oauth",
+        "api/sessions",
+        "api/role",
+        "api/dify",
+        "api/markdown",
+        "api/well-known"
       ]
     }
   ],

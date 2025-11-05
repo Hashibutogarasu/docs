@@ -1,71 +1,112 @@
 ---
-title: Introduction
-description: "Welcome to the home of your new documentation"
+title: "Karasu LAB API Documentation"
+description: "NestJS ベースの認証・認可APIドキュメント。OAuth 2.0、OpenID Connect、MFA対応"
 ---
 
-<img
-  className="block dark:hidden"
-  src="/images/hero-light.svg"
-  alt="Hero Light"
-/>
-<img
-  className="hidden dark:block"
-  src="/images/hero-dark.svg"
-  alt="Hero Dark"
-/>
+## 概要
 
-## Setting up
+Karasu LAB APIは、モダンなWeb アプリケーション向けの包括的な認証・認可システムを提供します。
 
-The first step to world-class documentation is setting up your editing environments.
+### 主な機能
 
 <CardGroup cols={2}>
   <Card
-    title="Edit Your Docs"
-    icon="pen-to-square"
-    href="https://mintlify.com/docs/quickstart"
+    title="認証システム"
+    icon="key"
   >
-    Get your docs set up locally for easy development
+    メールアドレス/パスワード認証、SNS連携(Google, Discord, GitHub)、JWT トークンベース認証
   </Card>
   <Card
-    title="Preview Changes"
-    icon="image"
-    href="https://mintlify.com/docs/development"
+    title="OAuth 2.0 / OpenID Connect"
+    icon="shield-halved"
   >
-    Preview your changes before you push to make sure they're perfect
+    PKCE対応のOAuth 2.0認可サーバー、OpenID Connect Discovery、サードパーティアプリケーション連携
+  </Card>
+  <Card
+    title="多要素認証 (MFA)"
+    icon="mobile"
+  >
+    TOTP形式の認証アプリ対応、バックアップコード、メールバックアップ機能
+  </Card>
+  <Card
+    title="セッション管理"
+    icon="clock"
+  >
+    複数デバイスのセッション管理、リモートログアウト、アクセストークンのリフレッシュ
   </Card>
 </CardGroup>
 
-## Make it yours
+## クイックスタート
 
-Update your docs to your brand and add valuable content for the best user conversion.
+### 認証フロー
 
-<CardGroup cols={2}>
-  <Card
-    title="Customize Style"
-    icon="palette"
-    href="https://mintlify.com/docs/settings/global"
-  >
-    Customize your docs to your company's colors and brands
-  </Card>
-  <Card
-    title="Reference APIs"
-    icon="code"
-    href="https://mintlify.com/docs/api-playground/openapi"
-  >
-    Automatically generate endpoints from an OpenAPI spec
-  </Card>
-  <Card
-    title="Add Components"
-    icon="screwdriver-wrench"
-    href="https://mintlify.com/docs/content/components/accordions"
-  >
-    Build interactive features and designs to guide your users
-  </Card>
-  <Card
-    title="Get Inspiration"
-    icon="stars"
-    href="https://mintlify.com/customers"
-  >
-    Check out our showcase of our favorite documentation
-  </Card>
-</CardGroup>
+1. **ユーザー登録**: `POST /auth/register`
+2. **ログイン**: `POST /auth/login`
+3. **プロフィール取得**: `GET /auth/profile` (Bearer Token)
+
+### SNS認証フロー
+
+1. **認証URL取得**: `POST /auth/state`
+2. **外部プロバイダーで認証**: リダイレクト
+3. **コールバック処理**: `GET /auth/callback/:provider`
+4. **トークン検証**: `POST /auth/verify`
+
+### OAuth 2.0フロー
+
+1. **クライアント作成**: `POST /oauth/client`
+2. **認可リクエスト**: `GET /oauth/authorize`
+3. **トークン取得**: `POST /oauth/token`
+4. **ユーザー情報取得**: `GET /oauth/userinfo`
+
+## API エンドポイント
+
+左側のサイドバーから各コントローラーのエンドポイントにアクセスできます。
+
+- **App**: ヘルスチェックとバージョン情報
+- **Auth**: 認証・ログイン・SNS連携
+- **MFA**: 多要素認証の設定と検証
+- **Users**: ユーザー情報の取得
+- **Account**: アカウント管理とパスワード変更
+- **OAuth**: OAuth 2.0認可サーバー
+- **Sessions**: セッション管理
+- **Role**: ロール・権限管理
+- **Dify**: AIチャット統合
+- **Markdown**: マークダウンユーティリティ
+- **Well-Known**: OpenID Connect Discovery
+
+## 認証方式
+
+### Bearer Token (JWT)
+
+ほとんどのエンドポイントはJWT認証が必要です。
+
+```bash
+Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9...
+```
+
+### Cookie認証
+
+一部のエンドポイントではクッキーベースの認証も使用されます。
+
+```
+Cookie: accessToken=...; refreshToken=...
+```
+
+## エラーハンドリング
+
+APIはHTTPステータスコードと構造化されたエラーレスポンスを返します。
+
+```json
+{
+  "error": "INVALID_CREDENTIALS",
+  "message": "Invalid email or password",
+  "statusCode": 401
+}
+```
+
+## サポート
+
+技術的な質問や問題がある場合は、以下にお問い合わせください:
+- GitHub: https://github.com/Hashibutogarasu
+- Twitter/X: https://x.com/Columba_Karasu
+

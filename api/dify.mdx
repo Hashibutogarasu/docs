@@ -1,0 +1,62 @@
+---
+title: "Dify"
+description: "Dify AIチャットサービスとの統合エンドポイント。ストリーミングチャット機能を提供"
+---
+
+## エンドポイント一覧
+
+### POST /dify/chat/stream
+
+Dify AIとのストリーミングチャットセッションを開始します。
+Server-Sent Events (SSE) 形式でリアルタイムにレスポンスを受信します。
+
+**Required**: Bearer Token (JWT)
+
+**Request Body**
+```json
+{
+  "query": "こんにちは、AIアシスタント",
+  "conversation_id": "optional_conversation_id",
+  "inputs": {
+    "key1": "value1",
+    "key2": "value2"
+  },
+  "response_mode": "streaming"
+}
+```
+
+**Response Headers**
+```
+Content-Type: text/event-stream
+Cache-Control: no-cache
+Connection: keep-alive
+Access-Control-Allow-Origin: *
+Access-Control-Allow-Headers: Cache-Control
+```
+
+**Response (SSE Stream)**
+```
+data: {"event":"message","message_id":"msg_1","conversation_id":"conv_1","answer":"こんにちは"}
+
+data: {"event":"message","message_id":"msg_1","conversation_id":"conv_1","answer":"！"}
+
+data: {"event":"message","message_id":"msg_1","conversation_id":"conv_1","answer":"何か"}
+
+data: {"event":"message_end","message_id":"msg_1","conversation_id":"conv_1"}
+
+data: [DONE]
+```
+
+イベントタイプ:
+- `message`: チャンクごとのメッセージ内容
+- `message_end`: メッセージ送信完了
+- `error`: エラー発生時
+- `[DONE]`: ストリーム終了
+
+**エラーレスポンス**
+```
+event: error
+data: {"error":"Error message"}
+```
+
+接続がクライアント側で切断された場合、ストリームは自動的にクリーンアップされます。

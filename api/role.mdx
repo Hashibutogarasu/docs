@@ -1,0 +1,33 @@
+---
+title: "Role"
+description: "ロール管理エンドポイント。ユーザーの権限とロール更新"
+---
+
+## エンドポイント一覧
+
+### GET /role/request-update
+
+現在のユーザーの管理者権限ステータスを更新します。
+外部システムとの同期や権限の再評価が必要な場合に使用します。
+
+**Required**: Bearer Token (JWT)
+
+**Response**
+```json
+{
+  "message": "Roles updated successfully",
+  "user": {
+    "id": "user_id",
+    "roles": [
+      {
+        "id": "role_id",
+        "name": "admin",
+        "bitmask": 255
+      }
+    ]
+  }
+}
+```
+
+このエンドポイントは、ユーザーの現在のロール情報を再評価し、
+必要に応じて管理者権限を付与または取り消します。

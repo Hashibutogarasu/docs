@@ -1,0 +1,104 @@
+---
+title: "App"
+description: "アプリケーションの基本的なヘルスチェックとバージョン情報を提供するエンドポイント"
+---
+
+## エンドポイント一覧
+
+### GET /
+
+アプリケーションのバージョン情報を取得します。
+
+**Response**
+```json
+{
+  "data": {
+    "version": "1.0.0"
+  }
+}
+```
+
+---
+
+### GET /ping
+
+アプリケーションの稼働状態を確認します。
+
+**Response**
+```json
+{
+  "data": {
+    "ping": true
+  }
+}
+```
+
+---
+
+### GET /raw-ping
+
+インターセプターなしで直接レスポンスを返すpingエンドポイント。
+
+**Response**
+```json
+{
+  "ping": true
+}
+```
+
+---
+
+### GET /user-read
+
+ユーザー読み取り権限のテストエンドポイント。
+
+**Required Permission**: `USER_READ`
+
+**Response**
+```json
+{
+  "data": {
+    "userRead": true
+  }
+}
+```
+
+---
+
+### GET /admin-read
+
+管理者読み取り権限のテストエンドポイント。
+
+**Required Permission**: `ADMIN_READ`
+
+**Response**
+```json
+{
+  "data": {
+    "adminRead": true
+  }
+}
+```
+
+---
+
+### GET /yosi
+
+メッセージ応答のテストエンドポイント。
+
+**Response**
+```json
+{
+  "data": {
+    "message": "app.yosi.response"
+  }
+}
+```
+
+---
+
+### GET /internal-server-error
+
+内部サーバーエラーのテストエンドポイント。エラーハンドリングのテストに使用します。
+
+**Response**: 500 Internal Server Error

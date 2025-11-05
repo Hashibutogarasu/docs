@@ -1,0 +1,82 @@
+---
+title: "Markdown"
+description: "マークダウンドキュメントの解析とセクション検索を提供するユーティリティエンドポイント"
+---
+
+## エンドポイント一覧
+
+### POST /markdown/extract-sections
+
+マークダウンテキストからヘッダーセクション一覧を抽出します。
+ヘッダーレベル（h1, h2, h3など）ごとに構造化されたセクション情報を返します。
+
+**Request Body**
+```json
+{
+  "markdown": "# Title\n\n## Section 1\n\nContent here...\n\n## Section 2\n\nMore content..."
+}
+```
+
+**Response**
+```json
+{
+  "h1": [
+    {
+      "level": 1,
+      "title": "Title",
+      "lineNumber": 1
+    }
+  ],
+  "h2": [
+    {
+      "level": 2,
+      "title": "Section 1",
+      "lineNumber": 3
+    },
+    {
+      "level": 2,
+      "title": "Section 2",
+      "lineNumber": 7
+    }
+  ],
+  "h3": [],
+  "h4": [],
+  "h5": [],
+  "h6": []
+}
+```
+
+---
+
+### POST /markdown/search-sections
+
+マークダウンのセクション内から指定された文字列を検索します。
+マッチしたセクションとその内容を返します。
+
+**Request Body**
+```json
+{
+  "markdown": "# Documentation\n\n## API Reference\n\nThis section describes the API...\n\n## Getting Started\n\nStart by installing...",
+  "searchTerm": "API"
+}
+```
+
+**Response**
+```json
+[
+  {
+    "section": "API Reference",
+    "level": 2,
+    "lineNumber": 3,
+    "content": "This section describes the API...",
+    "matchCount": 2
+  }
+]
+```
+
+各結果には以下の情報が含まれます:
+- `section`: マッチしたセクションのタイトル
+- `level`: ヘッダーレベル (1-6)
+- `lineNumber`: セクションの開始行番号
+- `content`: セクションの内容
+- `matchCount`: セクション内での検索語の出現回数
