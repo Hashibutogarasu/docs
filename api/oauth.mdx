@@ -115,6 +115,38 @@ OpenID Connect UserInfo エンドポイント。認証されたユーザー情�
 
 ---
 
+### POST /oauth/client/regenerate-secret
+
+既存のOAuthクライアントのClient Secretを再生成します。
+
+**Required**: Bearer Token (JWT)
+
+**Request Body**
+```json
+{
+  "clientId": "client_id_here"
+}
+```
+
+**Response**
+```json
+{
+  "clientSecret": "newly_generated_secret"
+}
+```
+
+**エラーレスポンス**
+- `401`: 認証が必要
+- `403`: クライアントへのアクセス権限がありません
+- `404`: クライアントが見つかりません
+
+**注意事項**:
+- 新しいシークレットが生成されると、古いシークレットは即座に無効になります
+- このクライアントで発行されたすべてのアクセストークンとリフレッシュトークンが無効化されます
+- 新しいシークレットは一度しか表示されないため、安全に保存してください
+
+---
+
 ### POST /oauth/availlable-scopes
 
 指定したOAuthクライアントで利用可能なスコープ一覧を取得します。
